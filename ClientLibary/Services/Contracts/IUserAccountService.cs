@@ -1,14 +1,18 @@
-﻿
-
-using BaseLibrary.DTOs;
+﻿using BaseLibrary.DTOs;
 using BaseLibrary.Responses;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ServerLibrary.Repositories.Contracts
+namespace ClientLibrary.Services.Contracts
 {
-    public interface IUserAccount
+    public interface IUserAccountService
     {
         Task<GeneralResponse> CreateAsync(Register user);
         Task<LoginResponse> SignInAsync(Login user);
         Task<LoginResponse> RefreshTokenAsync(RefreshToken refreshToken);
+
     }
 }
