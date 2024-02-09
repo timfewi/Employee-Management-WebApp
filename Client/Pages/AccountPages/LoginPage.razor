@@ -1,10 +1,14 @@
 ﻿@page "/identity/account/login"
+@using Syncfusion.Blazor.Popups
+@layout AuthenticationLayout
+@inject SfDialogService DialogService
+
+
 <div class="container">
     <div class="row">
         <div class="col-lg-6 offset-md-4">
             <EditForm Enhance Model="User" OnValidSubmit="HandleLogin">
                  <DataAnnotationsValidator />
-                 <ValidationSummary />
                  <div class="card">
                      <div class="card-header">Fill this form to Login</div>
                      <div class="card-body">
@@ -17,29 +21,51 @@
                              <input type="password" class="form-control" @bind="User.Password"></input>
                          </div>
                          <div class="form-group mt-3">
-                             <button class="btn btn-outline-primary float-end" type="submit">Login</button>
-                         </div>
-                     </div>
-                 </div>
-             </EditForm>
-         </div>
-     </div>
- </div>
+                             @if (ShowLoadingButton)
+                            {
+                                <Client.Pages.Components.StyleComponents.ButtonLoadingSpinner />
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-success float-end" type="submit">Login</button>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a class="btn-link" href="identity/account/register">Don't have an account? Register here</a>
+                        <ValidationSummary />
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
 
- @code {
+@code {
+
+    public bool ShowLoadingButton { get; set; } = false;
     Login User = new();
     async Task HandleLogin()
     {
+        ShowLoadingButton = true;
         var response = await accountService.SignInAsync(User);
         if (response.Flag)
         {
+            await DisplayDialog(response.Message, "Success");
             var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
             await customAuthStateProvider.UpdateAuthenticationState(new UserSession() { Token = response.Token, RefreshToken = response.RefreshToken });
             await InvokeAsync(() => NavigationManager.NavigateTo("/", forceLoad: true));
         }
         else
         {
-            Console.WriteLine(response.Message);
+            await DisplayDialog(response.Message, "Error");
         }
+        ShowLoadingButton = false;
+    }
+
+
+    private async Task DisplayDialog(string content, string title)
+    {
+        await DialogService.AlertAsync(content, title);
     }
 }
