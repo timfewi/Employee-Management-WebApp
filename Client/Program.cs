@@ -25,6 +25,4 @@ builder.Services.AddScoped<GetHttpClient>();
 builder.Services.AddScoped<LocalStorageService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IUserAccountService, UserAccountService>();
-builder.Services.AddSyncfusionBlazor();
-builder.Services.AddScoped<SfDialogService>();
 await builder.Build().RunAsync();

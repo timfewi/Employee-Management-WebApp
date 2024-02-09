@@ -1,10 +1,8 @@
 ﻿@page "/identity/account/register"
-@using Syncfusion.Blazor.Popups
-@inject SfDialogService DialogService
-
+@layout AuthenticationLayout
 
 <div class="container">
-    <div class="row">
+    <div class="row mt-3">
         <div class="col-lg-6 offset-md-4">
             <EditForm Model="NewUser" OnValidSubmit="HandleRegistration">
                 <DataAnnotationsValidator />
@@ -51,8 +49,13 @@
 @code {
 
     public bool ShowLoadingButton { get; set; } = false;
-
     Register NewUser = new();
+
+    [CascadingParameter] public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        await CheckUserAuthentication();
+    }
 
     async Task HandleRegistration()
     {
@@ -66,21 +69,25 @@
         var response = await accountService.CreateAsync(NewUser);
         if (response.Flag)
         {
-            await DisplayDialog(response.Message, "Success");
             NewUser = new();
             await InvokeAsync(() => NavigationManager.NavigateTo("/identity/account/login"));
         }
-        else
-        {
-            await DisplayDialog(response.Message, "Error");
-        }
+
         ShowLoadingButton = false;
     }
 
 
-    private async Task DisplayDialog(string content, string title)
+    // private async Task DisplayDialog(string content, string title)
+    // {
+    //     await DialogService.AlertAsync(content, title);
+    // }
+
+    private async Task CheckUserAuthentication()
     {
-        await DialogService.AlertAsync(content, title);
+        var user = (await AuthenticationStateTask).User;
+        bool isUserAuthenticated = user.Identity!.IsAuthenticated;
+        if (isUserAuthenticated)
+            NavigationManager.NavigateTo("/home/dashboard");
     }
 
 }

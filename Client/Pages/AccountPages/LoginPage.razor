@@ -1,11 +1,10 @@
 ﻿@page "/identity/account/login"
-@using Syncfusion.Blazor.Popups
 @layout AuthenticationLayout
-@inject SfDialogService DialogService
+
 
 
 <div class="container">
-    <div class="row">
+    <div class="row mt-3">
         <div class="col-lg-6 offset-md-4">
             <EditForm Enhance Model="User" OnValidSubmit="HandleLogin">
                  <DataAnnotationsValidator />
@@ -45,27 +44,39 @@
 
     public bool ShowLoadingButton { get; set; } = false;
     Login User = new();
+
+    [CascadingParameter] public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        await CheckUserAuthentication();
+    }
+
     async Task HandleLogin()
     {
         ShowLoadingButton = true;
         var response = await accountService.SignInAsync(User);
         if (response.Flag)
         {
-            await DisplayDialog(response.Message, "Success");
+
             var customAuthStateProvider = (CustomAuthenticationStateProvider)AuthStateProvider;
             await customAuthStateProvider.UpdateAuthenticationState(new UserSession() { Token = response.Token, RefreshToken = response.RefreshToken });
             await InvokeAsync(() => NavigationManager.NavigateTo("/", forceLoad: true));
         }
-        else
-        {
-            await DisplayDialog(response.Message, "Error");
-        }
+
         ShowLoadingButton = false;
     }
 
 
-    private async Task DisplayDialog(string content, string title)
+    // private async Task DisplayDialog(string content, string title)
+    // {
+    //     await DialogService.AlertAsync(content, title);
+    // }
+
+    private async Task CheckUserAuthentication()
     {
-        await DialogService.AlertAsync(content, title);
+        var user = (await AuthenticationStateTask).User;
+        bool isUserAuthenticated = user.Identity!.IsAuthenticated;
+        if (isUserAuthenticated)
+            NavigationManager.NavigateTo("/home/dashboard");
     }
 }
